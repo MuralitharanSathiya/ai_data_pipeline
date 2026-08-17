@@ -53,7 +53,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 def _get_table_config(config: dict) -> dict:
-    for table in config.get("tables", []):
+    # `or []`, not `.get("tables", [])`. An empty `tables:` key parses as None and
+    # the default only applies when the key is absent entirely, so `.get(k, [])`
+    # returns None here and the loop raises "'NoneType' object is not iterable".
+    for table in config.get("tables") or []:
         if table.get("name") == "<<TABLE_NAME>>":
             return table
     raise ValueError("Table configuration for '<<TABLE_NAME>>' not found in config.yaml")

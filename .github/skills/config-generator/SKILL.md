@@ -115,6 +115,41 @@ APPEND MODE rules:
 
 ------------------------------------------------------------------------
 
+# NEVER LEAVE `tables:` EMPTY
+
+An empty `tables:` key is not the same as a missing one. YAML parses this:
+
+```yaml
+tables:
+ingestion:
+  strategy: incremental
+```
+
+as `tables = None`, **not** as an empty list. Any ingestion script that then runs
+fails with `TypeError: 'NoneType' object is not iterable`, which points at the
+script rather than at the real problem in this file.
+
+This state is easy to create by accident: a fresh template has no `tables:`
+section at all, so adding the header and the first entry as two separate edits
+leaves the file broken in between. If a pipeline runs during that window — or if
+the second edit is never made — the failure looks like a bug in the generated
+Python.
+
+Rules:
+
+1. **Write the header and the first entry in a single edit.** When `tables:` is
+   absent, insert the key and at least one complete table entry together. Never
+   write a bare `tables:` line on its own.
+2. **Never delete the last entry** and leave the header behind. If every table is
+   removed, write `tables: []` explicitly — an empty list is valid and loads
+   cleanly.
+3. **Re-read the file after writing** and confirm `tables:` contains at least one
+   entry with `name`, and that `source`, `target` and `ingestion` are all still
+   present and non-empty. Report the table count in your completion summary.
+4. The same applies to `ingestion:` — it must always have `strategy` under it.
+
+------------------------------------------------------------------------
+
 # File 2 --- .env.example
 
 Example file:

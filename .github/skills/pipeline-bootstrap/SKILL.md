@@ -81,10 +81,19 @@ def load_pipeline_config(config_path: Path | None = None) -> Dict[str, Any]:
         config = yaml.safe_load(config_file) or {}
 
     required_top_level = ["source", "tables", "target", "ingestion"]
-    missing = [key for key in required_top_level if key not in config]
+    # `config.get(key) is None` rather than `key not in config`: a section header
+    # written with nothing under it (for example `tables:` followed by a blank
+    # line) is present as a key but parses to None. Treating that as valid lets
+    # the null reach the ingestion script, which fails later with an opaque
+    # "'NoneType' object is not iterable" instead of this message.
+    # An explicitly empty list (`tables: []`) is allowed — it means nothing has
+    # been onboarded yet, and the per-table lookup reports that clearly.
+    missing = [key for key in required_top_level if config.get(key) is None]
     if missing:
         missing_keys = ", ".join(missing)
-        raise ValueError(f"Missing required config sections: {missing_keys}")
+        raise ValueError(
+            f"Missing or empty required config sections: {missing_keys}"
+        )
 
     return config
 

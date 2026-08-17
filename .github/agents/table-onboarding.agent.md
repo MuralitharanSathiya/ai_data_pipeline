@@ -107,7 +107,9 @@ If the developer asks to change any input, return to Step 1 with the updated val
 ## Step 5 — Execute in Sequence
 
 After confirmation, execute in this exact order. Complete each step before starting the next.
-Stop and report if any step fails.
+Stop and report if any step fails — this includes the 5c-verify and 5d-verify gates below,
+which are steps in their own right, not optional sanity checks. A skill reporting success is
+not sufficient evidence that its output is correct; only re-reading and checking the result is.
 
 ### 5a — Invoke `pipeline-bootstrap` skill (idempotent)
 
@@ -144,11 +146,47 @@ Pass:
 - Table entry: `TABLE_NAME`, `PRIMARY_KEY`, `WATERMARK_COLUMN`, `INGESTION_STRATEGY`
 - Instruction: also create `.env.example` if it does not already exist
 
+### 5c-verify — Confirm `config.yaml` is actually correct before generating anything against it
+
+**Do not treat "the skill ran without an error message" as success.** Re-open the file
+you just wrote and check it, the same way a build pipeline runs its own build before
+reporting green. This step is mandatory and cannot be skipped even when 5c looked fine.
+
+1. Re-read `pipeline/config.yaml` from disk (not from memory of what you intended to write).
+2. Confirm it parses as valid YAML.
+3. Confirm `source`, `target`, `tables`, and `ingestion` are all present **and non-null**.
+   A section header with nothing under it (`tables:` followed immediately by another key)
+   parses to `None`, not an empty list — this is the single most common way this file
+   breaks, because it happens naturally if the header and the first entry are written as
+   two separate edits. Check for it explicitly.
+4. Confirm `tables:` contains exactly one entry for `TABLE_NAME` (not zero, not a duplicate),
+   and that entry's `primary_key` and `watermark_column` match what you were asked to onboard.
+
+If any check fails: **stop immediately.** Do not proceed to 5d. Report the exact defect
+("`config.yaml` has a `tables:` key but its value is empty — the append did not complete")
+and either fix it yourself and re-verify, or tell the developer clearly that onboarding did
+not complete and why. Never let a broken `config.yaml` reach the ingestion script generator.
+
 ### 5d — Invoke `@ingestion-agent`
 
 Pass: `TABLE_NAME`, `TABLE_LOWER`, `PRIMARY_KEY`, `WATERMARK_COLUMN`, `INGESTION_STRATEGY`
 
 The agent uses `ingest-script-generator` skill to produce `pipeline/ingestion/ingest_TABLE_LOWER.py`.
+
+### 5d-verify — Confirm the generated script is actually runnable
+
+1. Check the generated file for any unsubstituted marker — a literal `<<TABLE_NAME>>` or
+   `<<TABLE_NAME_LOWER>>` left in the output means the substitution step failed partway.
+2. Syntax-check the file (e.g. `python -m py_compile pipeline/ingestion/ingest_TABLE_LOWER.py`).
+   A script with a syntax error is not "created", regardless of what 5d reported.
+3. If `pipeline/utils/config_loader.py` exists, load `pipeline/config.yaml` through it
+   exactly as the generated script will (`load_pipeline_config()`) and confirm it does not
+   raise. This is the check that would have caught a null `tables:` before handing the
+   developer a script that fails with `TypeError: 'NoneType' object is not iterable`.
+
+If any check fails: stop, do not proceed to 5e/5f, and report the defect. Do not print the
+Step 7 completion summary or hand over a "run this" command for a script you have not
+verified will at least start without crashing on config load.
 
 ### 5e — Invoke `@transformation-agent`
 
@@ -173,7 +211,8 @@ The agent uses `dbt-test-generator` skill to produce:
 
 ## Step 6 — Completion Summary
 
-After all steps complete, output this summary:
+Only reachable once 5c-verify and 5d-verify have both passed. After all steps complete
+(including verification), output this summary:
 
 ```
 Onboarding complete for: TABLE_NAME
