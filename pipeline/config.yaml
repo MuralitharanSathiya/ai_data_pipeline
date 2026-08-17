@@ -1,0 +1,33 @@
+# Ingestion configuration for SQL -> Snowflake pipelines
+
+source:
+  type: sql 
+  server: agenticdataenginnering.database.windows.net
+  database: agentic_data_engineering
+  schema: rs
+
+target:
+  type: snowflake
+  account: DSNNPBW-DISYSPARTNER
+  database: RS_DATA_PLATFORM
+  schema: BRONZE
+  warehouse: RS_DEMO_WH
+  role: PIPELINE_SERVICE_ROLE
+
+tables:
+  - name: DimCustomer
+    primary_key: CustomerId
+    watermark_column: UpdatedAt
+    ingestion_strategy: incremental
+  - name: DimVehicle
+    primary_key: VehicleId
+    watermark_column: UpdatedAt
+    ingestion_strategy: incremental
+  - name: FactPickupEvent
+    primary_key: PickupId
+    watermark_column: UpdatedAt
+    ingestion_strategy: incremental
+
+ingestion:
+  strategy: incremental
+

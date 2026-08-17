@@ -1,0 +1,21 @@
+# Upper bounds are deliberate. Without them pip resolves dbt-core to 1.10+,
+# which requires dbt-core-experimental-parser (a 2.0 beta that downloads a wheel
+# from GitHub at build time and fails on any network with TLS inspection).
+# That failure aborts the whole install, leaving even pandas/pymssql missing.
+
+# Configuration & environment
+pyyaml>=6.0,<7
+python-dotenv>=1.0.1,<2
+
+# Data processing
+pandas>=2.2.0,<3
+
+# Source connector: Azure SQL Server
+pymssql>=2.3.0,<3
+
+# Target connector: Snowflake (ingestion)
+snowflake-connector-python[pandas]>=3.12.0,<4
+
+# Transformations: dbt with Snowflake adapter
+dbt-core>=1.9.0,<1.10
+dbt-snowflake>=1.9.0,<1.10

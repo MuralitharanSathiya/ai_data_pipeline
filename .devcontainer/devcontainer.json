@@ -1,0 +1,31 @@
+{
+  "name": "AI Data Pipeline (Python 3.12)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": false
+      }
+    }
+  },
+
+  // Installed with sudo on purpose. A plain `pip install` as the vscode user puts
+  // console scripts in ~/.local/bin, which is NOT on PATH in this image — dbt then
+  // installs "successfully" but ./dbt_run.sh dies with "dbt: command not found".
+  // Installing system-wide puts dbt in /usr/local/bin, which is always on PATH.
+  "postCreateCommand": "sudo pip install --no-cache-dir --upgrade pip && sudo pip install --no-cache-dir -r requirements.txt",
+
+  "remoteUser": "vscode"
+}
