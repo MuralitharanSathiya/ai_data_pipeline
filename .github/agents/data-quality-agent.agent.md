@@ -41,8 +41,12 @@ Each singular test file must:
 Step 4 - Reporting Expectations
 
 All generated tests must:
-- Integrate with `dbt test --project-dir dbt` — no manual Snowflake execution required
-- Be runnable per table: `dbt test --project-dir dbt --select silver_TABLE_LOWER`
+- Integrate with `./dbt_run.sh test --project-dir dbt` — no manual Snowflake execution required
+- Be runnable per table: `./dbt_run.sh test --project-dir dbt --select silver_TABLE_LOWER`
 - Follow the 0 rows = PASS convention for singular tests
+
+Always report `./dbt_run.sh`, never bare `dbt`, as the run command. dbt does not
+auto-load `.env`; bare `dbt` fails with `Env var required but not provided:
+'SNOWFLAKE_USER'` unless credentials happen to already be exported in that shell.
 
 This agent orchestrates workflow only; test implementation details come from the `dbt-test-generator` skill.

@@ -263,7 +263,7 @@ rm pipeline/state/<TABLE_LOWER>_watermark.json
 python pipeline/ingestion/ingest_<TABLE_LOWER>.py
 ```
 
-If the watermark file is left intact and the ingestion runs incrementally, Silver/Gold will be incomplete. Run `dbt build` after re-ingestion to rebuild Silver and Gold.
+If the watermark file is left intact and the ingestion runs incrementally, Silver/Gold will be incomplete. Run `./dbt_run.sh build` after re-ingestion to rebuild Silver and Gold.
 
 ------------------------------------------------------------------------
 

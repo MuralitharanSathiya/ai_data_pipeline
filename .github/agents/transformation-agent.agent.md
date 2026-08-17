@@ -35,8 +35,12 @@ Pass all inputs to the `dbt-model-generator` skill. It generates:
 **Step 3 — Report**
 Confirm files created and provide the run command:
 ```
-dbt build --project-dir dbt --select silver_<table> gold_<table>
+./dbt_run.sh build --project-dir dbt --select silver_<table> gold_<table>
 ```
+Always use `./dbt_run.sh`, never bare `dbt`. dbt does not auto-load `.env`, and
+`./dbt_run.sh` is the wrapper that sources it first — see `dbt_run.sh` itself for why.
+Bare `dbt build` fails with `Env var required but not provided: 'SNOWFLAKE_USER'`
+unless the credentials happen to already be exported in that terminal session.
 
 ---
 
@@ -115,7 +119,7 @@ Append a model test block to `dbt/models/silver/schema.yml` or `dbt/models/gold/
 State:
 - Model file created: `dbt/models/<layer>/<model_name>.sql`
 - Lands in Snowflake schema: `SILVER.<model_name>` or `GOLD.<model_name>`
-- Run command: `dbt build --project-dir dbt --select <model_name>`
+- Run command: `./dbt_run.sh build --project-dir dbt --select <model_name>` (not bare `dbt` — see the Path 1 Step 3 note above)
 
 ---
 
