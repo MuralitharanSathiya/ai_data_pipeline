@@ -82,10 +82,10 @@ Using your comprehension from Step 1 and the schema knowledge from Steps 2–3, 
 
 | Role | Description | Example |
 |------|-------------|---------|
-| **Fact** | Provides the numerical measures being aggregated | FactPickupEvent → GrossTons, RecycledTons |
+| **Fact** | Provides the numerical measures being aggregated | FactPickupEvent → WeightKg, RecycledWeightKg |
 | **Filter dimension** | Provides a WHERE predicate that restricts the population | DimCustomer → CustomerType = 'Commercial' |
 | **Label dimension** | Provides human-readable names or groupings for the output | DimCustomer → CustomerName |
-| **Optional filter** | Provides an additional filter that refines the measure | DimMaterialType → StreamType = 'Recycling' |
+| **Optional filter** | Provides an additional filter that refines the measure | FactPickupEvent → PickupStatus = 'Completed' |
 
 Also identify:
 - The **join path** — which FK column on the fact table links to each dimension
@@ -103,7 +103,7 @@ For each required table, pull the following from the source-data-model skill (or
 | Field | Source |
 |-------|--------|
 | Primary key | source-data-model or INFORMATION_SCHEMA |
-| Watermark column | source-data-model (LastModifiedAt for all current tables) |
+| Watermark column | source-data-model (UpdatedAt for all current tables) |
 | Ingestion strategy | source-data-model recommendation (incremental / full_refresh) |
 | Onboarding status | config.yaml cross-reference |
 
@@ -117,10 +117,10 @@ Output a structured, developer-ready summary with three parts:
 
 Explain which tables are needed and **why** — tied directly to the developer's use case. Do not just list tables; explain the role of each in answering the question. Example:
 
-> To answer "top commercial customers by recycled tonnage," you need three tables:
+> To answer "top commercial customers by recycled tonnage," you need two tables:
 > - **DimCustomer** provides the customer name and the `CustomerType` filter to restrict to Commercial accounts
-> - **FactPickupEvent** contains `RecycledTons` (the measure) and links to customers via `CustomerId`
-> - **DimMaterialType** is optional — needed only if you want to filter by material stream (e.g. Recycling only)
+> - **FactPickupEvent** contains `RecycledWeightKg` (the measure) and links to customers via `CustomerId`
+> - Optionally restrict to `PickupStatus = 'Completed'` so cancelled pickups do not count toward tonnage
 
 ### Part B — Technical Details Table
 
@@ -153,7 +153,7 @@ If you identified business-logic filters that will be needed in the Gold model, 
 
 > When you run `@transformation-agent`, mention these filters:
 > - Silver DimCustomer: exclude soft-deleted records (`IsDeleted = 0`)
-> - Gold model: filter `CustomerType = 'Commercial'`, aggregate `SUM(RecycledTons)` grouped by `CustomerName`
+> - Gold model: filter `CustomerType = 'Commercial'`, aggregate `SUM(RecycledWeightKg)` grouped by `CustomerName`
 
 ------------------------------------------------------------------------
 

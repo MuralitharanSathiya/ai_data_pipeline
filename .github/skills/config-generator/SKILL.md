@@ -82,7 +82,7 @@ When `pipeline/config.yaml` already exists and a new table is being added:
 tables:
   - name: FactPickupEvent
     primary_key: PickupId
-    watermark_column: LastModifiedAt
+    watermark_column: UpdatedAt
     ingestion_strategy: incremental
 ```
 
@@ -91,7 +91,7 @@ tables:
 tables:
   - name: FactPickupEvent
     primary_key: PickupId
-    watermark_column: LastModifiedAt
+    watermark_column: UpdatedAt
     ingestion_strategy: incremental
   - name: Orders
     primary_key: OrderId

@@ -14,20 +14,6 @@ target:
   warehouse: RS_DEMO_WH
   role: PIPELINE_SERVICE_ROLE
 
-tables:
-  - name: DimCustomer
-    primary_key: CustomerId
-    watermark_column: UpdatedAt
-    ingestion_strategy: incremental
-  - name: DimVehicle
-    primary_key: VehicleId
-    watermark_column: UpdatedAt
-    ingestion_strategy: incremental
-  - name: FactPickupEvent
-    primary_key: PickupId
-    watermark_column: UpdatedAt
-    ingestion_strategy: incremental
-
-ingestion:
-  strategy: incremental
+# No tables onboarded yet. The config-generator skill appends entries here
+# during @table-onboarding.
 

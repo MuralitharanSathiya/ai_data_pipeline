@@ -55,16 +55,16 @@ If `config.yaml` does not exist, report all tables as "not yet onboarded."
 ### Column Details
 - "What columns does DimCustomer have?"
 - "Describe the columns in FactPickupEvent."
-- "What data type is GrossTons?"
-- "Which columns are nullable in DimFacility?"
+- "What data type is WeightKg?"
+- "Which columns are nullable in DimVehicle?"
 - "What are the possible values for CustomerType?"
-- "What does StreamType mean?"
-- "Why is LandfilledTons a computed column?"
+- "What does WasteType mean?"
+- "How does LandfillWeightKg relate to WeightKg?"
 
 → Pull column details from the source data model. Include data type, nullability, and
   the **business description** — explain what the column means in the waste management
   domain, not just its technical properties. Use the domain terminology glossary from
-  the skill when relevant (e.g., explain "diversion rate" when discussing RecycledTons).
+  the skill when relevant (e.g., explain "diversion rate" when discussing RecycledWeightKg).
 
 ### Relationships and Join Paths
 - "How does FactPickupEvent relate to DimCustomer?"
@@ -76,13 +76,13 @@ If `config.yaml` does not exist, report all tables as "not yet onboarded."
   columns and the business meaning of each relationship.
 
 ### Keys and Watermarks
-- "What is the primary key for DimRoute?"
-- "What's the difference between CustomerId and CustomerCode?"
-- "Which column should I use as the watermark for DimFacility?"
+- "What is the primary key for DimVehicle?"
+- "What's the difference between VehicleId and VehicleNumber?"
+- "Which column should I use as the watermark for DimVehicle?"
 - "Do all tables have watermark columns?"
 
-→ Distinguish between surrogate keys (identity), business keys (unique), and watermark
-  columns. Explain when to use each for onboarding.
+→ Distinguish between surrogate keys (e.g. VehicleId), operational identifiers
+  (e.g. VehicleNumber), and watermark columns. Explain when to use each for onboarding.
 
 ### Measures and Aggregation Guidance
 - "What measures are in FactPickupEvent?"
@@ -122,7 +122,7 @@ If `config.yaml` does not exist, report all tables as "not yet onboarded."
 
   If FactPickupEvent is requested but one or more dimension tables are not yet onboarded,
   warn the developer:
-  > "FactPickupEvent depends on DimCustomer, DimRoute, DimFacility, and DimMaterialType.
+  > "FactPickupEvent depends on DimCustomer and DimVehicle.
   > [X, Y] are not yet onboarded. Bronze ingestion will work regardless, but Gold-layer
   > joins will be incomplete until all dimensions are in place."
 
@@ -135,16 +135,14 @@ If `config.yaml` does not exist, report all tables as "not yet onboarded."
 
   Single table example:
   ```
-  @table-onboarding Onboard table DimCustomer from rs schema, primary key CustomerId, watermark LastModifiedAt
+  @table-onboarding Onboard table DimCustomer from rs schema, primary key CustomerId, watermark UpdatedAt
   ```
 
   Batch example:
   ```
   @multi-table-onboarding Onboard tables:
-    - DimCustomer, PK=CustomerId, watermark=LastModifiedAt, strategy=incremental
-    - DimFacility, PK=FacilityId, watermark=LastModifiedAt, strategy=incremental
-    - DimMaterialType, PK=MaterialTypeId, watermark=LastModifiedAt, strategy=incremental
-    - DimRoute, PK=RouteId, watermark=LastModifiedAt, strategy=incremental
+    - DimCustomer, PK=CustomerId, watermark=UpdatedAt, strategy=incremental
+    - DimVehicle, PK=VehicleId, watermark=UpdatedAt, strategy=incremental
   ```
 
   The developer can copy-paste these commands directly into the Copilot Chat panel.
