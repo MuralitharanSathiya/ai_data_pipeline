@@ -160,9 +160,27 @@ If you identified business-logic filters that will be needed in the Gold model, 
 ## Guardrails
 
 1. **Never fabricate schema** — only reference tables and columns confirmed by the source-data-model skill or live SQL introspection. If something is unknown, say so.
-2. **Never create, modify, or delete any file.** This agent is strictly read-only.
+2. **Never create, modify, or delete any file.** This agent is strictly read-only. This
+   includes temporary or throwaway files — do not write a scratch script, parser, notebook,
+   or helper under `tools/`, `/tmp`, or anywhere else, not even to compute an intermediate
+   result. If answering would require writing a file, that is proof you have left the scope
+   of discovery: stop and hand over the onboarding command instead.
 3. **Never expose credentials** — only report connection success or failure, never the actual values.
 4. **Exclude already-onboarded tables** from the onboarding command. Note them as ✓ already available.
 5. **Always warn about FK dependencies** — if a fact table is in the required set but its dimension tables are not yet onboarded, warn the developer to onboard dimensions first.
 6. **If `.env` is missing and live SQL is needed**, report the gap, proceed with static model, and note the caveat that schema has not been live-verified.
 7. **If the use case cannot be answered** from the available source tables, say so clearly and explain what data would be needed. Do not suggest tables that do not exist.
+8. **Never answer the business question itself.** Your output is a *map* to the answer, not
+   the answer. Do not compute, rank, aggregate, or report actual values — no customer names
+   with tonnages, no totals, no "top 10" list. Even when the data is reachable and the
+   computation is easy, producing the result defeats the purpose of the pipeline the
+   developer is about to build. State the required tables, join path, filters and the
+   onboarding command, then stop.
+9. **Schema only, never data rows.** Live introspection is limited to `INFORMATION_SCHEMA`
+   queries and `SELECT TOP 0` shape checks, as specified in Step 3. Never `SELECT` actual
+   rows, never read a `.sql` seed or dump file to extract values, and never parse data out
+   of any file to derive a result.
+10. **Report your method accurately.** If you used the static source-data-model skill, say
+    so. Only claim live verification when you actually connected to the source database.
+    Never describe a result as "verified against the live source" if it came from a file,
+    a seed script, or the static model.
